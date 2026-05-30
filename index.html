@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Nexora | Generator</title>
+    <style>
+        /* === NEXORA MEGA KARANLIK TEMA === */
+        :root {
+            --bg-dark: #050507;
+            --bg-panel: rgba(15, 15, 18, 0.85);
+            --neon-mor: #8a2be2;
+            --neon-yesil: #00ff88;
+            --text-main: #e0e0e0;
+            --text-muted: #666666;
+            --border-color: rgba(255, 255, 255, 0.08);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Courier New', Courier, monospace, sans-serif; }
+        
+        body { 
+            background-color: var(--bg-dark); 
+            background-image: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 255, 136, 0.03) 2px, rgba(0, 255, 136, 0.03) 4px);
+            color: var(--text-main); display: flex; flex-direction: column; align-items: center; min-height: 100vh; overflow-x: hidden;
+            background-attachment: fixed;
+        }
+        
+        header { width: 100%; padding: 25px; background: rgba(5, 5, 7, 0.9); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border-color); text-align: center; position: sticky; top: 0; z-index: 100; }
+        header h1 { font-size: 32px; font-weight: 900; letter-spacing: 4px; font-family: Impact, sans-serif;}
+        header h1 span { color: var(--neon-mor); text-shadow: 0 0 15px rgba(138, 43, 226, 0.9); }
+
+        .container { width: 100%; max-width: 750px; padding: 20px; display: flex; flex-direction: column; gap: 20px; padding-bottom: 100px; }
+
+        /* Girdi Alanı */
+        #nickInput { width: 100%; padding: 22px; font-size: 22px; background: rgba(0,0,0,0.8); border: 2px solid #333; color: white; border-radius: 8px; outline: none; transition: 0.3s; font-weight: bold; text-align: center; font-family: monospace; letter-spacing: 2px;}
+        #nickInput:focus { border-color: var(--neon-yesil); box-shadow: 0 0 25px rgba(0, 255, 136, 0.2); }
+
+        /* Kategori Menüsü */
+        .tabs { display: flex; background: var(--bg-panel); padding: 5px; border-radius: 8px; border: 1px solid var(--border-color); flex-wrap: wrap; gap: 5px;}
+        .tab-btn { flex: 1; min-width: 110px; padding: 15px 5px; text-align: center; font-size: 13px; font-weight: bold; color: var(--text-muted); cursor: pointer; border-radius: 4px; transition: 0.3s; font-family: sans-serif; text-transform: uppercase; letter-spacing: 1px;}
+        .tab-btn.active { background: var(--neon-mor); color: white; box-shadow: inset 0 0 10px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2);}
+
+        /* Sonuç Kartları */
+        #resultsContainer { display: flex; flex-direction: column; gap: 15px; }
+        .result-card { background: var(--bg-panel); border-radius: 6px; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #222; transition: 0.2s; }
+        .result-card:hover { border-color: var(--neon-yesil); background: black; }
+        .result-text { font-size: 20px; margin-right: 15px; flex: 1; white-space: pre-wrap; word-break: break-all; }
+        
+        .copy-btn { background: transparent; color: var(--neon-yesil); border: 1px solid var(--neon-yesil); padding: 10px 20px; border-radius: 4px; font-size: 14px; font-weight: bold; cursor: pointer; min-width: 100px; text-align: center; transition: 0.2s; font-family: sans-serif; align-self: center;}
+        .copy-btn:hover { background: var(--neon-yesil); color: black; }
+        .copy-btn:active { transform: scale(0.95); }
+
+        /* Sembol & ASCII Izgarası */
+        .grid-layout { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px; }
+        .ascii-layout { display: grid; grid-template-columns: 1fr; gap: 20px; }
+        .item-btn { background: var(--bg-panel); border: 1px solid #333; padding: 20px 10px; text-align: center; border-radius: 4px; cursor: pointer; transition: 0.2s; color: white; font-size: 24px; }
+        .ascii-btn { font-size: 12px; white-space: pre; line-height: 1.1; overflow-x: auto; padding: 20px; text-align: left; }
+        .item-btn:hover { border-color: var(--neon-mor); background: black; color: var(--neon-yesil); }
+
+        .category-title { margin: 25px 0 10px 0; color: var(--neon-yesil); font-size: 16px; font-weight: 900; letter-spacing: 2px; border-bottom: 1px solid #333; padding-bottom: 8px; text-transform: uppercase; font-family: sans-serif;}
+
+        /* Hafıza Paneli */
+        #historyPanel { position: fixed; bottom: 20px; right: 20px; background: rgba(0,0,0,0.9); border: 1px solid var(--neon-mor); padding: 15px; border-radius: 8px; width: 280px; transform: translateY(150%); transition: 0.4s; z-index: 99; }
+        #historyPanel.show { transform: translateY(0); }
+        .history-title { font-size: 12px; color: var(--neon-yesil); font-weight: bold; margin-bottom: 10px; border-bottom: 1px solid #444; padding-bottom: 5px; display: flex; justify-content: space-between; font-family: sans-serif;}
+        .history-item { font-size: 14px; padding: 10px; background: #111; border-radius: 4px; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; border: 1px solid #333;}
+        .history-item:hover { border-color: var(--neon-yesil); }
+        .history-toggle { position: fixed; bottom: 20px; right: 20px; background: var(--neon-mor); color: white; border: none; width: 50px; height: 50px; border-radius: 4px; font-size: 24px; cursor: pointer; z-index: 100; border: 1px solid #fff; transition: 0.2s; }
+        .history-toggle:hover { background: white; color: black; border-color: var(--neon-mor);}
+
+        /* Toast */
+        #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px); background: var(--neon-yesil); color: black; padding: 15px 40px; border-radius: 4px; font-weight: 900; font-size: 16px; transition: 0.4s; z-index: 1000; border: 2px solid white; font-family: sans-serif; letter-spacing: 1px;}
+        #toast.show { transform: translateX(-50%) translateY(0); }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>NEX<span>ORA</span></h1>
+        <p style="font-size: 12px; color: var(--text-muted); margin-top: 5px; font-family: sans-serif;">Nick Generator Pro</p>
+    </header>
+
+    <div class="container">
+        
+        <input type="text" id="nickInput" placeholder="> METNİ GİRİN_" autocomplete="off">
+
+        <div class="tabs">
+            <div class="tab-btn active" onclick="sekmeDegistir('yazilar', this)">▤ Alfabe</div>
+            <div class="tab-btn" onclick="sekmeDegistir('suslemeler', this)">✦ Süsleme</div>
+            <div class="tab-btn" onclick="sekmeDegistir('semboller', this)">☫ Sembol</div>
+            <div class="tab-btn" onclick="sekmeDegistir('ascii', this)">░ Blok Sanatı</div>
+            <div class="tab-btn" onclick="sekmeDegistir('void', this)" style="color:var(--neon-mor); border-color:var(--neon-mor);">👁 VOID ŞİFRE</div>
+        </div>
+
+        <div id="resultsContainer"></div>
+
+    </div>
+
+    <button class="history-toggle" onclick="toggleHistory()" title="Geçmişi Aç">⟳</button>
+    <div id="historyPanel">
+        <div class="history-title"><span>SON KOPYALANANLAR</span> <button style="background:none;color:white;border:none;cursor:pointer;" onclick="toggleHistory()">✕</button></div>
+        <div id="historyList"><div style="font-size:11px; color:#888;">Hafıza boş.</div></div>
+    </div>
+
+    <div id="toast">KOPYALANDI</div>
+
+    <script>
+        // === 1. GENİŞLETİLMİŞ ALFABE ARŞİVİ ===
+        const chars = {
+            normal:      "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
+            kalin:       "𝗮𝗯𝗰𝗱𝗲𝗳𝗴𝗵𝗶𝗷𝗸𝗹𝗺𝗻𝗼𝗽𝗾𝗿𝘀𝘁𝘂𝘃𝘄𝘅𝘆𝘇𝗔𝗕𝗖𝗗𝗘𝗙𝗚𝗛𝗜𝗝𝗞𝗟𝗠𝗡𝗢𝗣𝗤𝗥𝗦𝗧𝗨𝗩𝗪𝗫𝗬𝗭𝟬𝟭𝟮𝟯𝟰𝟱𝟲𝟳𝟴𝟵",
+            italik:      "𝘢𝘣𝘤𝘥𝘦𝘧𝘨𝘩𝘪𝘫𝘬𝘭𝘮𝘯𝘰𝘱𝘲𝘳𝘴𝘵𝘶𝘷𝘸𝘹𝘺𝘻𝘈𝘉𝘊𝘋𝘌𝘍𝘎𝘏𝘐𝘑𝘒𝘓𝘔𝘕𝘖𝘗𝘘𝘙𝘚𝘛𝘜𝘝𝘞𝘟𝘠𝘡0123456789",
+            kalinItalik: "𝙖𝙗𝙘𝙙𝙚𝙛𝙜𝙝𝙞𝙟𝙠𝙡𝙢𝙣𝙤𝙥𝙦𝙧𝙨𝙩𝙪𝙫𝙬𝙭𝙮𝙯𝘼𝘽𝘾𝘿𝙀𝙁𝙂𝙃𝙄𝙅𝙆𝙇𝙈𝙉𝙊𝙋𝙌𝙍𝙎𝙏𝙐𝙑𝙒𝙓𝙔𝙕0123456789",
+            sansSerif:   "𝖺𝖻𝖼𝖽𝖾𝖿𝗀𝗁𝗂𝗃𝗄𝗅𝗆𝗇𝗈𝗉𝗊𝗋𝗌𝗍𝗎𝗏𝗐𝗑𝗒𝗓𝖠𝖡𝖢𝖣𝖤𝖥𝖦𝖧𝖨𝖩𝖪𝖫𝖬𝖭𝖮𝖯𝖰𝖱𝖲𝖳𝖴𝖵𝖶𝖷𝖸𝖹0123456789",
+            ciftCizgi:   "𝕒𝕓𝕔𝕕𝕖𝕗𝕘𝕙𝕚𝕛𝕜𝕝𝕞𝕟𝕠𝕡𝕢𝕣𝕤𝕥𝕦𝕧𝕨𝕩𝕪𝕫𝔸𝔹ℂ𝔻𝔼𝔽𝔾ℍ𝕀𝕁𝕂𝕃𝕄ℕ𝕆ℙℚℝ𝕊𝕋𝕌𝕍𝕎𝕏𝕐ℤ𝟘𝟙𝟚𝟛𝟜𝟝𝟞𝟟𝟠𝟡",
+            gotik:       "𝖆𝖇𝖈𝖉𝖊𝖋𝖌𝖍𝖎𝖏𝖐𝖑𝖒𝖓𝖔𝖕𝖖𝖗𝖘𝖙𝖚𝖛𝖜𝖝𝖞𝖟𝕬𝕭𝕮𝕯𝕰𝕱𝕲𝕳𝕴𝕵𝕶𝕷𝕸𝕹𝕺𝕻𝕼𝕽𝕾𝕿𝖀𝖁𝖂𝖃𝖄𝖅0123456789",
+            gotikKalin:  "𝕬𝕭𝕮𝕯𝕰𝕱𝕲𝕳𝕴𝕵𝕶𝕷𝕸𝕹𝕺𝕻𝕼𝕽𝕾𝕿𝖀𝖁𝖂𝖃𝖄𝖅𝕬𝕭𝕮𝕯𝕰𝕱𝕲𝕳𝕴𝕵𝕶𝕷𝕸𝕹𝕺𝕻𝕼𝕽𝕾𝕿𝖀𝖁𝖂𝖃𝖄𝖅0123456789",
+            elYazisi:    "𝒶𝒷𝒸𝒹ℯ𝒻ℊ𝒽𝒾𝒿𝓀𝓁𝓂𝓃ℴ𝓅𝓆𝓇𝓈𝓉𝓊𝓋𝓌𝓍𝓎𝓏𝒜ℬ𝒞𝒟ℰℱ𝒢ℋℐ𝒥𝒦ℒℳ𝒩𝒪𝒫𝒬ℛ𝒮𝒯𝒰𝒱𝒲𝒳𝒴𝒵𝟢𝟣𝟤𝟥𝟦𝟧𝟨𝟩𝟪𝟫",
+            elYazisiKalin:"𝓪𝓫𝓬𝓭𝓮𝓯𝓰𝓱𝓲𝓳𝓴𝓵𝓶𝓷𝓸𝓹𝓺𝓻𝓼𝓽𝓾𝓿𝔀𝔁𝔂𝔃𝓐𝓑𝓒𝓓𝓔𝓕𝓖𝓗𝓘𝓙𝓚𝓛𝓜𝓝𝓞𝓟𝓠𝓡𝓢𝓣𝓤𝓥𝓦𝓧𝓨𝓩0123456789",
+            kutuCizgi:   "🄰🄱🄲🄳🄴🄵🄶🄷🄸🄹🄺🄻🄼🄽🄾🄿🅀🅁🅂🅃🅄🅅🅆🅇🅈🅉🄰🄱🄲🄳🄴🄵🄶🄷🄸🄹🄺🄻🄼🄽🄾🄿🅀🅁🅂🅃🅄🅅🅆🅇🅈🅉1234567890",
+            kutuKoyu:    "🅰🅱🅲🅳🅴🅵🅶🅷🅸🅹🅺🅻🅼🅽🅾🅿🆀🆁🆂🆃🆄🆅🆆🆇🆈🆉🅰🅱🅲🅳🅴🅵🅶🅷🅸🅹🅺🅻🅼🅽🅾🅿🆀🆁🆂🆃🆄🆅🆆🆇🆈🆉0123456789",
+            daireCizgi:  "ⓐⓑⓒⓓⓔⓕⓖⓗⓘⓙⓚⓛⓜⓝⓞⓟⓠⓡⓢⓣⓤⓥⓦⓧⓨⓩⒶⒷⒸⒹⒺⒻⒼⒽⒾⒿⓀⓁⓂⓃⓄⓅⓆⓇⓈⓉⓊⓋⓌⓍⓎⓏ①②③④⑤⑥⑦⑧⑨⓪",
+            daireKoyu:   "🅐🅑🅒🅓🅔🅕🅖🅗🅘🅙🅚🅛🅜🅝🅞🅟🅠🅡🅢🅣🅤🅥🅦🅧🅨🅩🅐🅑🅒🅓🅔🅕🅖🅗🅘🅙🅚🅛🅜🅝🅞🅟🅠🅡🅢🅣🅤🅥🅦🅧🅨🅩❶❷❸❹❺❻❼❽❾⓿",
+            parantezIci: "⒜⒝⒞⒟⒠⒡⒢⒣⒤⒥⒦⒧⒨⒩⒪⒫⒬⒭⒮⒯⒰⒱⒲⒳⒴⒵⒜⒝⒞⒟⒠⒡⒢⒣⒤⒥⒦⒧⒨⒩⒪⒫⒬⒭⒮⒯⒰⒱⒲⒳⒴⒵⑴⑵⑶⑷⑸⑹⑺⑻⑼⑽",
+            kucukCaps:   "ᴀʙᴄᴅᴇғɢʜɪᴊᴋʟᴍɴᴏᴘǫʀsᴛᴜᴠᴡxʏᴢᴀʙᴄᴅᴇғɢʜɪᴊᴋʟᴍɴᴏᴘǫʀsᴛᴜᴠᴡxʏᴢ0123456789",
+            daktilo:     "𝚊𝚋𝚌𝚍𝚎𝚏𝚐𝚑𝚒𝚓𝚔𝚕𝚖𝚗𝚘𝚙𝚚𝚛𝚜𝚝𝚞𝚟𝚠𝚡𝚢𝚣𝙰𝙱𝙲𝙳𝙴𝙵𝙶𝙷𝙸𝙹𝙺𝙻𝙼𝙽𝙾𝙿𝚀𝚁𝚂𝚃𝚄𝚅𝚆𝚇𝚈𝚉𝟶𝟷𝟸𝟹𝟺𝟻𝟼𝟽𝟾𝟿",
+            genis:       "ａｂｃｄｅｆｇｈｉｊｋｌｍｎｏｐｑｒｓｔｕｖｗｘｙｚＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯＰＱＲＳＴＵＶＷＸＹＺ０１２３４５６７８９",
+            ters:        "ɐqɔpǝɟƃɥıɾʞlɯuodbɹsʇnʌʍxʎz∀ꓭƆꓷƎℲꓨHIꓩꓘꓶWNOꓒꓨꓤSꓕꓵɅMx⅄Z0ƖᄅƐㄣ૬9ㄥ86"
+        };
+
+        // === 2. VOID ŞİFRELEME ALFABESİ (Kriptografi İçin) ===
+        const voidRunes = {
+            "A":"ᐰ", "B":"ᛒ", "C":"☾", "D":"ᗪ", "E":"ᗴ", "F":"ᖴ", "G":"ᘜ", "H":"ℋ", "I":"ᛁ", 
+            "J":"ᒚ", "K":"ᚲ", "L":"ᒪ", "M":"ᛗ", "N":"ᚢ", "O":"ჿ", "P":"ᕵ", "Q":"ᕴ", "R":"ᖆ", 
+            "S":"ᔑ", "T":"ᖶ", "U":"ᑌ", "V":"ᐯ", "W":"ᗯ", "X":"᙭", "Y":"ᖻ", "Z":"ᙆ",
+            "a":"ᐰ", "b":"ᛒ", "c":"☾", "d":"ᗪ", "e":"ᗴ", "f":"ᖴ", "g":"ᘜ", "h":"ℋ", "i":"ᛁ", 
+            "j":"ᒚ", "k":"ᚲ", "l":"ᒪ", "m":"ᛗ", "n":"ᚢ", "o":"ჿ", "p":"ᕵ", "q":"ᕴ", "r":"ᖆ", 
+            "s":"ᔑ", "t":"ᖶ", "u":"ᑌ", "v":"ᐯ", "w":"ᗯ", "x":"᙭", "y":"ᖻ", "z":"ᙆ",
+            "1":"Ⅰ", "2":"Ⅱ", "3":"Ⅲ", "4":"Ⅳ", "5":"Ⅴ", "6":"Ⅵ", "7":"Ⅶ", "8":"Ⅷ", "9":"Ⅸ", "0":"〇"
+        };
+
+        // === SÜSLEME VE SEMBOLLER (100+) ===
+        const solKanatlar = ["꧁༺ ", "⫷ ", "【 ", "『 ", "⦗ ", "☠ ♱ ", "ıllıllı ", "★彡 ", "×º°”˜`”°º× ", "╰☆☆ ", "✧ ", "↤↤↤ ", "▄︻デ══━一 ", "⌐╦╦═─ ", "☆ ", "♡ ", "♔ ", "✦ ", "•´¯`•. ", "๑۩۞۩๑ ", "♛ ", "|!¤*'~``~'*¤!| ", "☫ ", "☬ ", "☭ ", "⚚ ", "⚕ ", "⚔ ", "⚖ ", "⛨ "];
+        const sagKanatlar = [" ༻꧂", " ⫸", " 】", " 』", " ⦘", " ♱ ☠", " ıllıllı", " 彡★", " ×º°”˜`”°º×", " ☆☆╮", " ✧", " ↦↦↦", " 一━══デ︻▄", " ─═╦╦⌐", " ☆", " ♡", " ♔", " ✦", " .•´¯`•", " ๑۩۞۩๑", " ♛", " |!¤*'~``~'*¤!|", " ☫", " ☬", " ☭", " ⚚", " ⚕", " ⚔", " ⚖", " ⛨"];
+        
+        const suslemeArsivi = [];
+        for(let i=0; i<solKanatlar.length; i++) {
+            suslemeArsivi.push(solKanatlar[i] + "{T}" + sagKanatlar[i]);
+            if(i % 2 === 0 && i+1 < solKanatlar.length) {
+                suslemeArsivi.push(solKanatlar[i] + "{T}" + sagKanatlar[i+1]);
+            }
+            suslemeArsivi.push("「" + solKanatlar[i].trim() + " {T} " + sagKanatlar[i].trim() + "」");
+        }
+        ["─── ･ ｡ﾟ☆: *.☽ .* :☆ﾟ. ───\n{T}\n─── ･ ｡ﾟ☆: *.☽ .* :☆ﾟ. ───", "╔════════════════════╗\n          {T}\n╚════════════════════╝", "◢◤◢◤◢◤ {T} ◢◤◢◤◢◤", "█ ✪ █▓▓▓▓ {T} ▓▓▓▓█ ✪ █"].forEach(s => suslemeArsivi.push(s));
+
+        const semboller = {
+            "SİLAH & KILIÇ": ["⚔", "🗡", "🔪", "🔫", "🏹", "➶", "➷", "▄︻デ══━一", "╾━╤デ╦︻", "︻デ═一", "⌐╦╦═─", "༒", "╰❥"],
+            "GOTİK & HAÇ": ["♱", "☠", "✞", "✟", "✠", "✚", "✛", "✝", "☣", "☢", "☯", "☸", "☥", "☬", "☫", "☭", "⚚", "⚕", "⚖", "⛨"],
+            "MİSTİK ASTRO": ["★", "☆", "✦", "✧", "✩", "✪", "✫", "✬", "✮", "✯", "✡︎", "۞", "☾", "☽", "⚝", "☼"],
+            "ÇERÇEVE & BAĞ": ["꧁", "꧂", "༺", "༻", "࿐", "⛩", "༂", "༊", "╔", "╗", "╚", "╝", "╠", "╣", "╦", "╩", "╬", "═", "║", "⸻", "〰", "⃤", "░", "▒", "▓", "█"],
+            "YÜZ İFADESİ": ["(ง'̀-'́)ง", "¯\\_(ツ)_/¯", "(ಥ_ಥ)", "(¬‿¬)", "(⌐■_■)", "༼ つ ◕_◕ ༽つ", "ಠ_ಠ", "(╯°□°）╯︵ ┻━┻", "ʕ•ᴥ•ʔ"]
+        };
+
+        const asciiArt = {
+            "NEXORA KESİN LOGO": "███╗   ██╗███████╗██╗  ██╗██████╗ ██████╗  █████╗ \n████╗  ██║██╔════╝╚██╗██╔╝██╔═══██╗██╔══██╗██╔══██╗\n██╔██╗ ██║█████╗   ╚███╔╝ ██║   ██║██████╔╝███████║\n██║╚██╗██║██╔══╝   ██╔██╗ ██║   ██║██╔══██╗██╔══██║\n██║ ╚████║███████╗██╔╝ ██╗╚██████╔╝██║  ██║██║  ██║\n╚═╝  ╚═══╝╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝",
+            "GOTİK KURU KAFA": "      _.--\"\"--._\n     /  _    _  \\\n    _  (o)  (o)  _\n   | |   .---.   | |\n   | |  /_____\\  | |\n    \\_\\         /_/\n      `\"\"\"\"\"\"\"\"`",
+            "M4A1 KESKİN NİŞANCI": "      __\n ┳┻| ▄︻デ══━一\n ┻┳|  \n ┳┻| \n ┻┳|",
+            "ŞEYTAN KANADI": " ╱|、\n(˚ˎ 。7  \n|、˜〵 \nじしˍ,)ノ"
+        };
+
+        // === ANA SİSTEM DEĞİŞKENLERİ ===
+        let aktifSekme = 'yazilar';
+        let kopyaGecmisi = [];
+        const inputField = document.getElementById('nickInput');
+        const resultsContainer = document.getElementById('resultsContainer');
+
+        // Dönüştürme Motorları
+        function donustur(metin, tarz) {
+            let sonuc = "";
+            for (let i = 0; i < metin.length; i++) {
+                let char = metin[i].replace('ı', 'i').replace('İ', 'I').replace('ğ', 'g').replace('Ğ', 'G')
+                           .replace('ü', 'u').replace('Ü', 'U').replace('ş', 's').replace('Ş', 'S')
+                           .replace('ö', 'o').replace('Ö', 'O').replace('ç', 'c').replace('Ç', 'C');
+                let index = chars.normal.indexOf(char);
+                sonuc += index !== -1 ? Array.from(chars[tarz])[index] : char;
+            }
+            return sonuc;
+        }
+
+        // Kriptografi Çevirici
+        function voidSifrele(metin) {
+            let sonuc = "";
+            for (let i = 0; i < metin.length; i++) {
+                let char = metin[i].replace('ı', 'i').replace('İ', 'I').replace('ğ', 'g').replace('Ğ', 'G')
+                           .replace('ü', 'u').replace('Ü', 'U').replace('ş', 's').replace('Ş', 'S')
+                           .replace('ö', 'o').replace('Ö', 'O').replace('ç', 'c').replace('Ç', 'C');
+                sonuc += voidRunes[char] || char; 
+            }
+            return sonuc;
+        }
+
+        // JS Manipülatörleri
+        function glitchYazi(metin) {
+            const semboller = ["̷", "̴", "̵", "̶", "͜", "͝", "͞", "͟", "͠", "͢", "̸", "⃠"];
+            let sonuc = "";
+            for (let i = 0; i < metin.length; i++) {
+                sonuc += metin[i];
+                for(let j=0; j<4; j++) sonuc += semboller[Math.floor(Math.random() * semboller.length)];
+            }
+            return sonuc;
+        }
+        
+        function ciftUstuCizik(metin) { return metin.split('').map(c => c + '\u0336\u0334').join(''); }
+        function altCizgi(metin) { return metin.split('').map(c => c + '\u0332').join(''); }
+        function dalgaliCizgi(metin) { return metin.split('').map(c => c + '\u0334').join(''); }
+        function bosluklu(metin) { return metin.split('').join(' '); }
+
+        function sekmeDegistir(sekme, btnElement) {
+            aktifSekme = sekme;
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            btnElement.classList.add('active');
+            
+            inputField.style.display = (sekme === 'semboller' || sekme === 'ascii') ? 'none' : 'block';
+            if(sekme === 'void') inputField.placeholder = "> GİZLENECEK METNİ GİRİN_";
+            else inputField.placeholder = "> METNİ GİRİN_";
+            
+            sonuclariGuncelle();
+        }
+
+        function sonuclariGuncelle() {
+            resultsContainer.innerHTML = ""; 
+
+            // STATİK SEKMELER 
+            if (aktifSekme === 'semboller') {
+                for (const [kategori, liste] of Object.entries(semboller)) {
+                    resultsContainer.innerHTML += `<div class="category-title">${kategori}</div><div class="grid-layout">` + 
+                        liste.map(s => `<button class="item-btn" onclick="kopyala(this, \`${s.replace(/`/g, "\\`")}\`)">${s}</button>`).join('') + `</div>`;
+                }
+                return;
+            }
+
+            if (aktifSekme === 'ascii') {
+                resultsContainer.innerHTML += `<div class="category-title">DEVASA BLOK ÇİZİMLERİ</div><div class="ascii-layout">`;
+                for (const [isim, cizim] of Object.entries(asciiArt)) {
+                    resultsContainer.innerHTML += `
+                        <div class="item-btn ascii-btn" onclick="kopyala(this, \`${cizim.replace(/`/g, "\\`")}\`)">
+                            <div style="color:var(--neon-yesil); margin-bottom:15px; border-bottom:1px solid #333; padding-bottom:5px; font-family:sans-serif;">[ ${isim} ]</div>
+                            ${cizim}
+                        </div>`;
+                }
+                resultsContainer.innerHTML += `</div>`;
+                return;
+            }
+
+            // DİNAMİK SEKMELER
+            let metin = inputField.value.trim();
+            if (metin === "") {
+                resultsContainer.innerHTML = "<div style='text-align:center; color:var(--text-muted); margin-top:40px; font-size:20px;'>> BEKLENİYOR...</div>";
+                return;
+            }
+
+            // VOID ŞİFRELEME ---
+            if (aktifSekme === 'void') {
+                const sifreliMetin = voidSifrele(metin);
+                resultsContainer.innerHTML += `<div class="category-title" style="color:var(--neon-mor);">ANTİK RUNE ÇEVİRİSİ</div>`;
+                resultsContainer.innerHTML += `
+                    <div class="result-card" style="border-color:var(--neon-mor);">
+                        <div class="result-text" style="color:var(--neon-mor); letter-spacing:3px;">${sifreliMetin}</div>
+                        <button class="copy-btn" style="color:var(--neon-mor); border-color:var(--neon-mor);" onclick="kopyala(this, \`${sifreliMetin.replace(/`/g, "\\`")}\`)">KOPYALA</button>
+                    </div>
+                `;
+                return;
+            }
+
+            let sonuclar = [];
+            
+            // Alfabe ve Süslemeler
+            if (aktifSekme === 'yazilar') {
+                sonuclar.push({ ad: "Sert Çizik", deger: ciftUstuCizik(metin) });
+                sonuclar.push({ ad: "Alt Çizgi", deger: altCizgi(metin) });
+                sonuclar.push({ ad: "Dalgalı Çizgi", deger: dalgaliCizgi(metin) });
+                sonuclar.push({ ad: "Zalgo (Glitch)", deger: glitchYazi(metin) });
+                sonuclar.push({ ad: "Ayrık", deger: bosluklu(metin) });
+                Object.keys(chars).forEach(key => { if(key !== 'normal') sonuclar.push({ ad: key, deger: donustur(metin, key) }); });
+            } 
+            else if (aktifSekme === 'suslemeler') {
+                suslemeArsivi.forEach(sus => sonuclar.push({ ad: "Süs", deger: sus.replace("{T}", metin) }));
+            }
+
+            sonuclar.forEach(sonuc => {
+                const kart = document.createElement('div');
+                kart.className = 'result-card';
+                kart.innerHTML = `
+                    <div class="result-text">${sonuc.deger}</div>
+                    <button class="copy-btn" onclick="kopyala(this, \`${sonuc.deger.replace(/`/g, "\\`")}\`)">KOPYALA</button>
+                `;
+                resultsContainer.appendChild(kart);
+            });
+        }
+
+        inputField.addEventListener('input', sonuclariGuncelle);
+
+        // Kopyalama ve Hafıza
+        function kopyala(btnElement, yazi) {
+            navigator.clipboard.writeText(yazi).then(() => {
+                if(!btnElement.classList.contains('item-btn')) {
+                    const eskiMetin = btnElement.innerText;
+                    btnElement.innerText = "ALINDI";
+                    btnElement.style.background = "var(--neon-yesil)";
+                    btnElement.style.color = "black";
+                    setTimeout(() => {
+                        btnElement.innerText = eskiMetin;
+                        btnElement.style.background = "transparent";
+                        btnElement.style.color = "var(--neon-yesil)";
+                    }, 1000);
+                }
+
+                if(!kopyaGecmisi.includes(yazi)) {
+                    kopyaGecmisi.unshift(yazi);
+                    if(kopyaGecmisi.length > 8) kopyaGecmisi.pop(); 
+                    gecmisiGuncelle();
+                }
+
+                const toast = document.getElementById('toast');
+                toast.classList.add('show');
+                setTimeout(() => toast.classList.remove('show'), 1500);
+            });
+        }
+
+        function toggleHistory() { document.getElementById('historyPanel').classList.toggle('show'); }
+
+        function gecmisiGuncelle() {
+            const liste = document.getElementById('historyList');
+            liste.innerHTML = "";
+            kopyaGecmisi.forEach(oge => {
+                liste.innerHTML += `<div class="history-item" onclick="kopyala(this, \`${oge.replace(/`/g, "\\`")}\`)" title="Tekrar Kopyala">${oge}</div>`;
+            });
+        }
+
+        sonuclariGuncelle();
+    </script>
+</body>
+</html>
